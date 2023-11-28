@@ -16,15 +16,15 @@ class Calculator:
         self.records.append(record)
 
     def get_today_stats(self) -> int:
-        today = dt.datetime.today()
+        today = dt.date.today()
         today_amount = 0
         for record in self.records:
-            if record.date.date() == today.date():
+            if record.date == today:
                 today_amount += record.amount
         return today_amount
 
     def get_week_stats(self) -> int:
-        today = dt.datetime.today()
+        today = dt.date.today()
         week_ago = today - dt.timedelta(weeks=1)
         amount = 0
         for record in self.records:
@@ -35,56 +35,52 @@ class Calculator:
 
 class CashCalculator(Calculator):
 
-    USD_RATE = 88
-    EURO_RATE = 96
+    USD_RATE = 88.1
+    EURO_RATE = 96.1
 
-    def get_today_cash_remained(self, currency: str) -> str:
-        total_today = self.get_today_stats()
-        remainder = self.limit - total_today
+    def get_today_cash_remained(self, currency):
+        remainder = self.limit - self.get_today_stats()
         if remainder > 0:
             if currency == RUB:
                 return f'На сегодня осталось {remainder} руб'
             elif currency == USD:
-                return f'На сегодня осталось {remainder / CashCalculator.USD_RATE} USD'
+                return f'На сегодня осталось {(remainder / CashCalculator.USD_RATE):.2f} USD'
+            elif currency == EURO:
+                return f'На сегодня осталось {(remainder / CashCalculator.EURO_RATE):.2f} Euro'
             else:
-                return f'На сегодня осталось {remainder / CashCalculator.EURO_RATE} Euro'
+                return 'Вы ввели некорректную валюту. Доступные валюты: rub, usd, eur.'
         elif remainder == 0:
-            return 'Денег нет, но вы держитесь.'
+            if currency not in ('rub', EURO, USD):
+                return 'Вы ввели некорректную валюту. Доступные валюты: rub, usd, eur.'
+            return 'Денег нет, держись'
         else:
             if currency == RUB:
-                return f'Денег нет, держись: твой долг - {-remainder} руб'
+                return f'Денег нет, держись: твой долг - {abs(remainder)} руб'
             elif currency == USD:
-                return f'Денег нет, держись: твой долг - {-round(remainder / CashCalculator.USD_RATE, 2)} USD'
+                return f'Денег нет, держись: твой долг - {abs(remainder / CashCalculator.USD_RATE):.2f} USD'
+            elif currency == EURO:
+                return f'Денег нет, держись: твой долг - {abs(remainder / CashCalculator.EURO_RATE):.2f} Euro'
             else:
-                return f'Денег нет, держись: твой долг - {-round(remainder / CashCalculator.EURO_RATE, 2)} Euro'
+                return 'Вы ввели некорректную валюту. Доступные валюты: rub, usd, eur.'
 
 
 class Record:
 
-    def __init__(self, amount: int = 0, date: str = '00.00.0000', comment: str = '') -> None:
-        if date == '00.00.0000':
-            date = dt.datetime.today().strftime(DATE_FORMAT)
-        self.amount: int = amount
-        self.date: dt.datetime = dt.datetime.strptime(date, DATE_FORMAT)
-        self.comment: str = comment
+    def __init__(self, amount, comment, date=None):
+        if date is None:
+            date = dt.date.today()
+        else:
+            date = dt.datetime.strptime(date, DATE_FORMAT).date()
+        self.date = date
+        self.amount = amount
+        self.comment = comment
 
 
 class CaloriesCalculator(Calculator):
 
     def get_calories_remained(self) -> str:
-        today_eaten: int = self.get_today_stats
+        today_eaten: int = self.get_today_stats()
         if today_eaten < self.limit:
             return f'Сегодня можно съесть что-нибудь ещё, но с общей калорийностью не более {self.limit - today_eaten} кКал'
         else:
             return 'Хватит есть!'
-
-
-# my_money = CashCalculator(10_000)
-# r1 = Record(500, '28.11.2023', 'Hooker')
-# r2 = Record(600, '28.11.2023', 'Second hooker')
-# r3 = Record(8900, '28.11.2023', 'Cocaine')
-# my_money.add_record(r1)
-# my_money.add_record(r2)
-# my_money.add_record(r3)
-# print(my_money.get_today_cash_remained(RUB))
-# print(my_money.get_week_stats())
