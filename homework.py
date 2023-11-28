@@ -84,13 +84,3 @@ class CaloriesCalculator(Calculator):
             return f'Сегодня можно съесть что-нибудь ещё, но с общей калорийностью не более {self.limit - today_eaten} кКал'
         else:
             return 'Хватит есть!'
-
-
-my_money = CashCalculator(10_000)
-r1 = Record(500, 'Hooker', '28.11.2023')
-r2 = Record(600, 'Second hooker', '28.11.2023')
-r3 = Record(8900, 'Cocaine', '18.11.2023')
-my_money.add_record(r1)
-my_money.add_record(r2)
-my_money.add_record(r3)
-print(my_money.get_today_cash_remained('rub'))
