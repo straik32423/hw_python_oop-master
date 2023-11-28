@@ -1,9 +1,6 @@
 import datetime as dt
 
 DATE_FORMAT = '%d.%m.%Y'
-RUB = 'rub'
-EURO = 'eur'
-USD = 'usd'
 
 
 class Calculator:
@@ -37,31 +34,34 @@ class CashCalculator(Calculator):
 
     USD_RATE = 88.1
     EURO_RATE = 96.1
+    RUB_RATE = 1.0
 
     def get_today_cash_remained(self, currency):
+        RUB = 'rub'
+        EURO = 'eur'
+        USD = 'usd'
+        rename = {
+            RUB: 'руб',
+            USD: 'USD',
+            EURO: 'Euro',
+        }
+        currency_exchange_rates = {
+            RUB: CashCalculator.RUB_RATE,
+            EURO: CashCalculator.EURO_RATE,
+            USD: CashCalculator.USD_RATE,
+        }
+
+        if currency not in currency_exchange_rates:
+            return f'Вы ввели неправильную валюту. Доступные валюты: {', '.join(currency_exchange_rates)}.'
+
         remainder = self.limit - self.get_today_stats()
-        if remainder > 0:
-            if currency == RUB:
-                return f'На сегодня осталось {remainder} руб'
-            elif currency == USD:
-                return f'На сегодня осталось {(remainder / CashCalculator.USD_RATE):.2f} USD'
-            elif currency == EURO:
-                return f'На сегодня осталось {(remainder / CashCalculator.EURO_RATE):.2f} Euro'
-            else:
-                return 'Вы ввели некорректную валюту. Доступные валюты: rub, usd, eur.'
-        elif remainder == 0:
-            if currency not in ('rub', EURO, USD):
-                return 'Вы ввели некорректную валюту. Доступные валюты: rub, usd, eur.'
+        remainder = remainder / currency_exchange_rates[currency]
+        if remainder == 0:
             return 'Денег нет, держись'
+        elif remainder > 0:
+            return f'На сегодня осталось {remainder:.2f} {rename[currency]}'
         else:
-            if currency == RUB:
-                return f'Денег нет, держись: твой долг - {abs(remainder)} руб'
-            elif currency == USD:
-                return f'Денег нет, держись: твой долг - {abs(remainder / CashCalculator.USD_RATE):.2f} USD'
-            elif currency == EURO:
-                return f'Денег нет, держись: твой долг - {abs(remainder / CashCalculator.EURO_RATE):.2f} Euro'
-            else:
-                return 'Вы ввели некорректную валюту. Доступные валюты: rub, usd, eur.'
+            return f'Денег нет, держись: твой долг - {abs(remainder):.2f} {rename[currency]}'
 
 
 class Record:
@@ -84,3 +84,13 @@ class CaloriesCalculator(Calculator):
             return f'Сегодня можно съесть что-нибудь ещё, но с общей калорийностью не более {self.limit - today_eaten} кКал'
         else:
             return 'Хватит есть!'
+
+
+my_money = CashCalculator(10_000)
+r1 = Record(500, 'Hooker', '28.11.2023')
+r2 = Record(600, 'Second hooker', '28.11.2023')
+r3 = Record(8900, 'Cocaine', '18.11.2023')
+my_money.add_record(r1)
+my_money.add_record(r2)
+my_money.add_record(r3)
+print(my_money.get_today_cash_remained('rub'))
